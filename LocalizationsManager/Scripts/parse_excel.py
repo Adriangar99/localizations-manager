@@ -54,6 +54,13 @@ def parse_excel(file_path):
             missing = [col for col in ["Bundle Code", "Locale", "Text Key", "Text Value"] if col not in headers]
             return {"error": f"Missing required columns: {', '.join(missing)}"}
 
+        # Find optional observations column
+        observations_col = None
+        try:
+            observations_col = headers.index("Observations")
+        except ValueError:
+            pass  # Observations column is optional
+
         # Parse data rows
         entries = []
         for row in rows[1:]:
@@ -65,16 +72,27 @@ def parse_excel(file_path):
             key = str(row[key_col]).strip() if row[key_col] else ""
             value = str(row[value_col]).strip() if len(row) > value_col and row[value_col] else ""
 
+            # Read observations if column exists
+            comment = ""
+            if observations_col is not None and len(row) > observations_col and row[observations_col]:
+                comment = str(row[observations_col]).strip()
+
             # Skip rows without locale or key
             if not locale or not key:
                 continue
 
-            entries.append({
+            entry = {
                 "bundle": bundle,
                 "locale": locale,
                 "key": key,
                 "value": value
-            })
+            }
+
+            # Only include comment if it's not empty
+            if comment:
+                entry["comment"] = comment
+
+            entries.append(entry)
 
         wb.close()
         return {"entries": entries}

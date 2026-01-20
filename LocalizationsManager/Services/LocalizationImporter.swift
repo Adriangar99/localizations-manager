@@ -81,7 +81,8 @@ final class LocalizationImporter {
                     bundle: "",
                     locale: defaultLocale,
                     key: key,
-                    value: key
+                    value: key,
+                    comment: nil
                 )
                 localizations.append(entry)
             }
@@ -91,7 +92,7 @@ final class LocalizationImporter {
         }
 
         // Group by locale and file
-        var groupedLocalizations: [String: [String: [String: String]]] = [:]
+        var groupedLocalizations: [String: [String: [String: LocalizationValue]]] = [:]
         var skippedLocales = Set<String>()
 
         for localization in localizations {
@@ -108,7 +109,10 @@ final class LocalizationImporter {
                 groupedLocalizations[lprojFolder]?[stringFileName] = [:]
             }
 
-            groupedLocalizations[lprojFolder]?[stringFileName]?[localization.key] = localization.value
+            groupedLocalizations[lprojFolder]?[stringFileName]?[localization.key] = LocalizationValue(
+                value: localization.value,
+                comment: localization.comment
+            )
         }
 
         // Log skipped locales once
@@ -215,11 +219,14 @@ final class LocalizationImporter {
                     continue
                 }
 
+                let comment = entryDict["comment"]
+
                 entries.append(LocalizationEntry(
                     bundle: bundle,
                     locale: locale,
                     key: key,
-                    value: value
+                    value: value,
+                    comment: comment
                 ))
             }
 
@@ -240,7 +247,7 @@ final class LocalizationImporter {
     /// Updates a .strings file with new or modified keys
     private func patchStringsFile(
         at filePath: String,
-        with updates: [String: String],
+        with updates: [String: LocalizationValue],
         locale: String
     ) async throws -> PatchStats {
         var updates = updates
@@ -283,10 +290,10 @@ final class LocalizationImporter {
         var addedKeys: [String] = []
 
         // Update existing keys
-        for (key, value) in updates {
+        for (key, localizationValue) in updates {
             if let idx = keyLines[key] {
                 let oldLine = newLines[idx].trimmingCharacters(in: .whitespaces)
-                let newLine = "\"\(key)\" = \"\(value)\";"
+                let newLine = "\"\(key)\" = \"\(localizationValue.value)\";"
 
                 if oldLine != newLine {
                     newLines[idx] = newLine
@@ -302,7 +309,7 @@ final class LocalizationImporter {
             let newKeysSorted = updates.sorted { $0.key < $1.key }
             let allKeysSorted = (Array(keyLines.keys) + newKeysSorted.map(\.key)).sorted()
 
-            for (key, value) in newKeysSorted {
+            for (key, localizationValue) in newKeysSorted {
                 // Find insertion index
                 guard let keyIndex = allKeysSorted.firstIndex(of: key) else {
                     continue
@@ -320,11 +327,14 @@ final class LocalizationImporter {
                     }
                 }
 
+                // Use comment from Excel if available, otherwise use default
+                let comment = localizationValue.comment ?? "No comment provided by engineer."
+
                 // Insert: empty line + comment + key-value
                 let linesToInsert = [
                     "",
-                    "/* No comment provided by engineer. */",
-                    "\"\(key)\" = \"\(value)\";"
+                    "/* \(comment) */",
+                    "\"\(key)\" = \"\(localizationValue.value)\";"
                 ]
 
                 for (offset, lineToInsert) in linesToInsert.enumerated() {
@@ -368,4 +378,11 @@ private struct LocalizationEntry {
     let locale: String
     let key: String
     let value: String
+    let comment: String?
+}
+
+/// Represents a localization value with its optional comment
+private struct LocalizationValue {
+    let value: String
+    let comment: String?
 }
