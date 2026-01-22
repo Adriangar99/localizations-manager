@@ -23,7 +23,8 @@ LocalizationsManager is a powerful macOS helper application built with SwiftUI t
 
 - **Import from Excel**: Bulk import localization strings from Excel files with automatic locale mapping
 - **Bulk Delete**: Remove localization keys across all language variants in one click
-- **Smart Detection**: Automatically detects all `.lproj` folders and languages in your Xcode project
+- **Smart Detection**: Automatically detects all `.lproj` folders, languages, and `.strings` files in your Xcode project
+- **Multiple Strings Files**: Works with any `.strings` file in your project, not just `Localizable.strings`
 - **Real-time Feedback**: Live output log showing all operations and errors
 - **Project Memory**: Quick access to recently configured projects
 
@@ -66,7 +67,8 @@ Need to remove deprecated localization keys? The bulk delete feature:
 
 The app automatically:
 - Scans your project directory for `.lproj` folders
-- Finds all `Localizable.strings` files
+- Detects all common `.strings` files across your language folders
+- Allows you to select which `.strings` file to work with (e.g., `Localizable.strings`, `InfoPlist.strings`, or custom files)
 - Determines your default language (prioritizes: Spanish → English → Base → others)
 - Lists all available languages with display names
 
@@ -122,9 +124,10 @@ Pre-built binaries will be available in the [Releases](https://github.com/yourus
    - Navigate to your Xcode project root directory (where your `.xcodeproj` file is)
    - Select the folder
 
-3. **Configure detection** (optional):
-   - The app will automatically detect all `.lproj` folders
-   - You can review detected languages and the default language
+3. **Configure detection**:
+   - The app will automatically detect all `.lproj` folders and available `.strings` files
+   - Select which `.strings` file you want to work with
+   - Review detected languages and the default language
 
 4. **Start using** - Click "Continue" to access the main interface
 
@@ -310,7 +313,8 @@ Test coverage includes:
 
 - Check the **output log** in the app for detailed error messages
 - Review your Excel file format
-- Verify your Xcode project structure has `.lproj` folders with `Localizable.strings` files
+- Verify your Xcode project structure has `.lproj` folders with `.strings` files
+- Ensure you've selected the correct `.strings` file in the project configuration
 
 ## Contributing
 
