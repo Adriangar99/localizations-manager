@@ -6,7 +6,7 @@ This file provides guidance to AI coding assistants when working with code in th
 
 LocalizationsManager is a macOS helper application built with SwiftUI for managing iOS/macOS project localizations. It allows importing localization strings from Excel files and bulk-deleting localization keys across all language variants (.lproj folders).
 
-**Version**: 1.0.1 (Build 2)
+**Version**: 1.0.2
 **Bundle ID**: com.magicalonso.LocalizationsManager
 **Category**: Developer Tools
 **Minimum macOS**: 13.0 (Ventura)
@@ -15,10 +15,11 @@ LocalizationsManager is a macOS helper application built with SwiftUI for managi
 
 1. **Excel Import**: Import localization strings from Excel files with automatic locale mapping
 2. **Bulk Delete**: Delete localization keys across all language variants simultaneously
-3. **Project Detection**: Automatic detection of `.lproj` folders and `Localizable.strings` files
-4. **Recent Projects**: Quick access to recently configured projects
-5. **Real-time Logging**: Live output log showing all operations and errors
-6. **Multi-language Support**: Handles 30+ locale variants with intelligent mapping
+3. **Project Detection**: Automatic detection of `.lproj` folders and multiple `.strings` files
+4. **Multiple Strings Files Support**: Detects and allows working with multiple `.strings` files (not just `Localizable.strings`)
+5. **Recent Projects**: Quick access to recently configured projects
+6. **Real-time Logging**: Live output log showing all operations and errors
+7. **Multi-language Support**: Handles 30+ locale variants with intelligent mapping
 
 ## Requirements
 
@@ -63,15 +64,19 @@ The app is configured to run without App Sandbox to allow full file system acces
 
 The app uses a configuration-driven flow:
 1. **ProjectSetupView**: Initial setup screen for selecting an Xcode project directory
-2. **ProjectConfiguration**: Detects `.lproj` folders and `Localizable.strings` files automatically via `LocalizationDetector`
-3. **MainTabView**: Main interface with two tabs (Import and Delete) once project is configured
+2. **ProjectConfiguration**: Detects `.lproj` folders and all `.strings` files automatically via `LocalizationDetector`
+3. **Strings File Selection**: Allows selecting which `.strings` file to work with (e.g., `Localizable.strings`, `InfoPlist.strings`, custom files)
+4. **MainTabView**: Main interface with two tabs (Import and Delete) once project is configured
 
 ### Core Services
 
 **LocalizationDetector** (`Services/LocalizationDetector.swift`)
-- Scans project directories to find all `.lproj` folders containing `Localizable.strings`
+- Scans project directories to find all `.lproj` folders and detects common `.strings` files across them
+- Automatically excludes `InfoPlist.strings` from detection
 - Determines default language (prioritizes: es > en > Base > others)
-- Returns `LocalizationConfig` with base path and available languages
+- Detects multiple `.strings` files that appear in all or most `.lproj` directories
+- Returns `LocalizationConfig` with base path, available languages, available strings files, and selected strings file
+- Defaults to `Localizable.strings` when available, otherwise uses the most common file
 
 **LocalizationImporter** (`Services/LocalizationImporter.swift`)
 - Imports localizations from Excel files to `.strings` files
@@ -111,6 +116,14 @@ The Excel parsing relies on a Python script at `LocalizationsManager/Scripts/par
 - Executes via `/usr/bin/python3` and returns JSON output
 - Validates required Excel columns before parsing
 
+### Data Models
+
+**LocalizationConfig** (`Services/LocalizationDetector.swift`)
+- Configuration structure returned by the detector
+- Contains: `defaultLanguage`, `localizationPath`, `availableLanguages`, `availableStringsFiles`, `selectedStringsFile`
+- Supports backward compatibility through custom `Codable` implementation
+- Defaults to "Localizable" for legacy configurations without strings file selection
+
 ### State Management
 
 **ProjectConfiguration** (`Models/ProjectConfiguration.swift`)
@@ -118,6 +131,7 @@ The Excel parsing relies on a Python script at `LocalizationsManager/Scripts/par
 - Persists configuration to `UserDefaults`
 - Manages recent projects list (max 10 entries)
 - Auto-saves on any property change
+- Stores selected `.strings` file for each project
 
 ### Views and UI Components
 
