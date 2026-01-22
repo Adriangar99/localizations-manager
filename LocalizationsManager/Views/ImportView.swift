@@ -13,6 +13,7 @@ struct ImportView: View {
     let projectPath: String
     let localizationPath: String
     let defaultLanguage: String
+    let stringsFileName: String
     @State private var excelFilePath: String? = nil
     @State private var isProcessing: Bool = false
     @State private var outputLog: String = ""
@@ -171,7 +172,7 @@ struct ImportView: View {
                 }
             }
 
-            let importer = LocalizationImporter(logger: logger)
+            let importer = LocalizationImporter(stringsFileName: stringsFileName, logger: logger)
 
             do {
                 try await importer.importLocalizations(
@@ -194,5 +195,5 @@ struct ImportView: View {
 }
 
 #Preview {
-    ImportView(projectPath: "/Users/example/Project", localizationPath: "/Users/example/Project", defaultLanguage: "en")
+    ImportView(projectPath: "/Users/example/Project", localizationPath: "/Users/example/Project", defaultLanguage: "en", stringsFileName: "Localizable")
 }

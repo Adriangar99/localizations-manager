@@ -37,7 +37,9 @@ final class ProjectConfigurationTests {
         let localizationConfig = LocalizationConfig(
             defaultLanguage: "es",
             localizationPath: "/test/path",
-            availableLanguages: ["es", "en", "fr"]
+            availableLanguages: ["es", "en", "fr"],
+            availableStringsFiles: ["Localizable"],
+            selectedStringsFile: "Localizable"
         )
 
         config.setLocalizationConfig(localizationConfig)
@@ -70,7 +72,9 @@ final class ProjectConfigurationTests {
         let localizationConfig = LocalizationConfig(
             defaultLanguage: "es",
             localizationPath: "/test/path",
-            availableLanguages: ["es", "en"]
+            availableLanguages: ["es", "en"],
+            availableStringsFiles: ["Localizable"],
+            selectedStringsFile: "Localizable"
         )
 
         config.addRecentProject(
@@ -90,7 +94,9 @@ final class ProjectConfigurationTests {
         let localizationConfig = LocalizationConfig(
             defaultLanguage: "es",
             localizationPath: "/test/path",
-            availableLanguages: ["es"]
+            availableLanguages: ["es"],
+            availableStringsFiles: ["Localizable"],
+            selectedStringsFile: "Localizable"
         )
 
         // Add more than 10 projects
@@ -114,7 +120,9 @@ final class ProjectConfigurationTests {
         let localizationConfig = LocalizationConfig(
             defaultLanguage: "es",
             localizationPath: "/test/path",
-            availableLanguages: ["es"]
+            availableLanguages: ["es"],
+            availableStringsFiles: ["Localizable"],
+            selectedStringsFile: "Localizable"
         )
 
         config.addRecentProject(

@@ -13,6 +13,7 @@ struct MainTabView: View {
     let localizationPath: String
     let defaultLanguage: String
     let availableLanguages: [String]
+    let selectedStringsFile: String
     @State private var showLanguagesPopover: Bool = false
 
     var body: some View {
@@ -82,6 +83,26 @@ struct MainTabView: View {
                                         .background(.ultraThinMaterial)
                                     }
                                 }
+
+                                // Strings file selector (only show if multiple files available)
+                                if config.availableStringsFiles.count > 1 {
+                                    HStack(spacing: 4) {
+                                        Text("File:")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Picker("", selection: Binding(
+                                            get: { config.selectedStringsFile ?? selectedStringsFile },
+                                            set: { config.selectedStringsFile = $0 }
+                                        )) {
+                                            ForEach(config.availableStringsFiles, id: \.self) { file in
+                                                Text("\(file).strings").tag(file)
+                                            }
+                                        }
+                                        .pickerStyle(.menu)
+                                        .font(.caption)
+                                        .frame(width: 150)
+                                    }
+                                }
                             }
                         }
                     }
@@ -103,15 +124,25 @@ struct MainTabView: View {
 
             // Tab View
             TabView {
-                ImportView(projectPath: projectPath, localizationPath: localizationPath, defaultLanguage: defaultLanguage)
-                    .tabItem {
-                        Label("Import", systemImage: "arrow.down.doc.fill")
-                    }
+                ImportView(
+                    projectPath: projectPath,
+                    localizationPath: localizationPath,
+                    defaultLanguage: defaultLanguage,
+                    stringsFileName: config.selectedStringsFile ?? selectedStringsFile
+                )
+                .tabItem {
+                    Label("Import", systemImage: "arrow.down.doc.fill")
+                }
 
-                DeleteView(projectPath: projectPath, localizationPath: localizationPath, defaultLanguage: defaultLanguage)
-                    .tabItem {
-                        Label("Delete", systemImage: "trash.fill")
-                    }
+                DeleteView(
+                    projectPath: projectPath,
+                    localizationPath: localizationPath,
+                    defaultLanguage: defaultLanguage,
+                    stringsFileName: config.selectedStringsFile ?? selectedStringsFile
+                )
+                .tabItem {
+                    Label("Delete", systemImage: "trash.fill")
+                }
             }
         }
         .frame(minWidth: 900, minHeight: 600)
@@ -128,6 +159,7 @@ struct MainTabView: View {
         projectPath: "/Users/example/Project",
         localizationPath: "/Users/example/Project",
         defaultLanguage: "es",
-        availableLanguages: ["es", "en", "fr"]
+        availableLanguages: ["es", "en", "fr"],
+        selectedStringsFile: "Localizable"
     )
 }

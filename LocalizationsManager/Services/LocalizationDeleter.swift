@@ -20,10 +20,12 @@ final class LocalizationDeleter {
     /// - Parameters:
     ///   - keys: Array of localization keys to delete
     ///   - projectPath: Path to the project containing .lproj folders
+    ///   - stringsFileName: Name of the .strings file to process (without extension)
     /// - Throws: LocalizationError if the operation fails
     func deleteKeys(
         _ keys: [String],
-        from projectPath: String
+        from projectPath: String,
+        stringsFileName: String
     ) async throws {
         guard !keys.isEmpty else {
             throw LocalizationError.emptyKeysList
@@ -52,13 +54,12 @@ final class LocalizationDeleter {
         for lprojDir in lprojDirs {
             let lprojURL = URL(fileURLWithPath: lprojDir)
 
-            // Find all .strings files in this .lproj directory
-            let stringsFiles = try fileManager.contentsOfDirectory(atPath: lprojDir)
-                .filter { $0.hasSuffix(".strings") }
+            // Process only the selected .strings file
+            let targetFileName = "\(stringsFileName).strings"
+            let filePath = lprojURL.appendingPathComponent(targetFileName).path
 
-            for stringsFile in stringsFiles {
-                let filePath = lprojURL.appendingPathComponent(stringsFile).path
-
+            // Check if the file exists before processing
+            if fileManager.fileExists(atPath: filePath) {
                 let deletedCount = try cleanStringsFile(at: filePath, removingKeys: keysSet)
                 if deletedCount > 0 {
                     totalDeleted += deletedCount

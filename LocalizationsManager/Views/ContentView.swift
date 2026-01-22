@@ -14,13 +14,15 @@ struct ContentView: View {
         Group {
             if let projectPath = config.projectPath,
                let localizationPath = config.localizationPath,
-               let defaultLanguage = config.defaultLanguage {
+               let defaultLanguage = config.defaultLanguage,
+               let selectedStringsFile = config.selectedStringsFile {
                 MainTabView(
                     config: config,
                     projectPath: projectPath,
                     localizationPath: localizationPath,
                     defaultLanguage: defaultLanguage,
-                    availableLanguages: config.availableLanguages
+                    availableLanguages: config.availableLanguages,
+                    selectedStringsFile: selectedStringsFile
                 )
             } else {
                 ProjectSetupView(config: config)

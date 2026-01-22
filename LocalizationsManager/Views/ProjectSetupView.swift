@@ -14,6 +14,10 @@ struct ProjectSetupView: View {
     @State private var selectedRecentProject: RecentProject?
     @State private var hoveredProject: RecentProject?
     @State private var errorMessage: String?
+    @State private var showStringsFilePicker: Bool = false
+    @State private var detectedConfig: LocalizationConfig? = nil
+    @State private var pendingProjectPath: String? = nil
+    @State private var pendingXcodeprojPath: String? = nil
 
     var body: some View {
         HSplitView {
@@ -217,6 +221,33 @@ struct ProjectSetupView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(minWidth: 800, minHeight: 500)
+        .sheet(isPresented: $showStringsFilePicker) {
+            if let config = detectedConfig, let projectPath = pendingProjectPath, let xcodeprojPath = pendingXcodeprojPath {
+                StringsFilePickerView(
+                    config: config,
+                    onSelect: { selectedFile in
+                        // Update the config with the selected file
+                        let updatedConfig = LocalizationConfig(
+                            defaultLanguage: config.defaultLanguage,
+                            localizationPath: config.localizationPath,
+                            availableLanguages: config.availableLanguages,
+                            availableStringsFiles: config.availableStringsFiles,
+                            selectedStringsFile: selectedFile
+                        )
+                        finalizeProjectSetup(
+                            projectPath: projectPath,
+                            xcodeprojPath: xcodeprojPath,
+                            config: updatedConfig
+                        )
+                        showStringsFilePicker = false
+                    },
+                    onCancel: {
+                        showStringsFilePicker = false
+                        errorMessage = "Project setup cancelled"
+                    }
+                )
+            }
+        }
     }
 
     private func openProject() {
@@ -234,14 +265,22 @@ struct ProjectSetupView: View {
                 if url.pathExtension == "xcodeproj" {
                     let projectDirectory = url.deletingLastPathComponent().path
 
-                    if let detectedConfig = LocalizationDetector.detectConfiguration(in: projectDirectory) {
-                        config.addRecentProject(
-                            projectPath: projectDirectory,
-                            xcodeprojPath: url.path,
-                            config: detectedConfig
-                        )
-                        config.projectPath = projectDirectory
-                        config.setLocalizationConfig(detectedConfig)
+                    if let config = LocalizationDetector.detectConfiguration(in: projectDirectory) {
+                        // Check if there are multiple strings files
+                        if config.availableStringsFiles.count > 1 {
+                            // Show picker dialog
+                            self.detectedConfig = config
+                            self.pendingProjectPath = projectDirectory
+                            self.pendingXcodeprojPath = url.path
+                            self.showStringsFilePicker = true
+                        } else {
+                            // Only one file, proceed directly
+                            finalizeProjectSetup(
+                                projectPath: projectDirectory,
+                                xcodeprojPath: url.path,
+                                config: config
+                            )
+                        }
                         errorMessage = nil
                     } else {
                         errorMessage = "No localization files found in this project"
@@ -251,6 +290,16 @@ struct ProjectSetupView: View {
                 }
             }
         }
+    }
+
+    private func finalizeProjectSetup(projectPath: String, xcodeprojPath: String, config: LocalizationConfig) {
+        self.config.addRecentProject(
+            projectPath: projectPath,
+            xcodeprojPath: xcodeprojPath,
+            config: config
+        )
+        self.config.projectPath = projectPath
+        self.config.setLocalizationConfig(config)
     }
 
     private func openRecentProject(_ project: RecentProject) {
@@ -264,6 +313,94 @@ struct ProjectSetupView: View {
             errorMessage = "Project no longer exists at this location"
             config.removeRecentProject(project)
         }
+    }
+}
+
+// Strings file picker view
+struct StringsFilePickerView: View {
+    let config: LocalizationConfig
+    let onSelect: (String) -> Void
+    let onCancel: () -> Void
+
+    @State private var selectedFile: String
+
+    init(config: LocalizationConfig, onSelect: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
+        self.config = config
+        self.onSelect = onSelect
+        self.onCancel = onCancel
+        // Initialize with the default selected file from config
+        _selectedFile = State(initialValue: config.selectedStringsFile)
+    }
+
+    var body: some View {
+        VStack(spacing: 24) {
+            // Header
+            VStack(spacing: 8) {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.blue)
+
+                Text("Select Strings File")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Text("Multiple .strings files were detected. Choose which one to use:")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+
+            // Radio button selection
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(config.availableStringsFiles, id: \.self) { file in
+                    Button(action: {
+                        selectedFile = file
+                    }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: selectedFile == file ? "circle.inset.filled" : "circle")
+                                .font(.system(size: 20))
+                                .foregroundColor(selectedFile == file ? .blue : .secondary)
+
+                            Text("\(file).strings")
+                                .font(.body)
+                                .foregroundColor(.primary)
+
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(selectedFile == file ? Color.blue.opacity(0.1) : Color.clear)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(selectedFile == file ? Color.blue : Color.clear, lineWidth: 2)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal)
+
+            // Action buttons
+            HStack(spacing: 12) {
+                Button("Cancel") {
+                    onCancel()
+                }
+                .keyboardShortcut(.cancelAction)
+
+                Button("Continue") {
+                    onSelect(selectedFile)
+                }
+                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(32)
+        .frame(width: 500)
+        .background(.ultraThinMaterial)
     }
 }
 

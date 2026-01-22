@@ -90,7 +90,7 @@ struct LocalizationDetectorTests {
         #expect(config == nil)
     }
 
-    @Test func testDetectConfigurationIgnoresLprojWithoutStrings() throws {
+    @Test func testDetectConfigurationFindsNonLocalizableStrings() throws {
         let tempDir = FileManager.default.temporaryDirectory
         let projectDir = tempDir.appendingPathComponent("TestProjectNoStrings_\(UUID().uuidString)")
 
@@ -107,7 +107,10 @@ struct LocalizationDetectorTests {
 
         let config = LocalizationDetector.detectConfiguration(in: projectDir.path)
 
-        #expect(config == nil)
+        // Should now detect "Other.strings" as an available strings file
+        #expect(config != nil)
+        #expect(config?.availableStringsFiles.contains("Other") == true)
+        #expect(config?.selectedStringsFile == "Other")
     }
 
     @Test func testStringsFilePathConstruction() throws {

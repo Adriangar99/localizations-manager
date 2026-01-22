@@ -10,10 +10,11 @@ import Foundation
 /// Service for importing localizations from Excel files to .strings files
 final class LocalizationImporter {
 
-    private let stringFileName = "Localizable"
+    private let stringFileName: String
     private let logger: LocalizationLogger
 
-    init(logger: LocalizationLogger) {
+    init(stringsFileName: String, logger: LocalizationLogger) {
+        self.stringFileName = stringsFileName
         self.logger = logger
     }
 

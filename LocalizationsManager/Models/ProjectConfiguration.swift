@@ -33,12 +33,26 @@ class ProjectConfiguration: ObservableObject {
         }
     }
 
+    @Published var availableStringsFiles: [String] = [] {
+        didSet {
+            saveConfiguration()
+        }
+    }
+
+    @Published var selectedStringsFile: String? {
+        didSet {
+            saveConfiguration()
+        }
+    }
+
     @Published var recentProjects: [RecentProject] = []
 
     private let projectPathKey = "projectPath"
     private let defaultLanguageKey = "defaultLanguage"
     private let localizationPathKey = "localizationPath"
     private let availableLanguagesKey = "availableLanguages"
+    private let availableStringsFilesKey = "availableStringsFiles"
+    private let selectedStringsFileKey = "selectedStringsFile"
     private let recentProjectsKey = "recentProjects"
     private let maxRecentProjects = 10
 
@@ -58,6 +72,12 @@ class ProjectConfiguration: ObservableObject {
         }
         if let languages = UserDefaults.standard.stringArray(forKey: availableLanguagesKey) {
             availableLanguages = languages
+        }
+        if let stringsFiles = UserDefaults.standard.stringArray(forKey: availableStringsFilesKey) {
+            availableStringsFiles = stringsFiles
+        }
+        if let selectedFile = UserDefaults.standard.string(forKey: selectedStringsFileKey), !selectedFile.isEmpty {
+            selectedStringsFile = selectedFile
         }
         loadRecentProjects()
     }
@@ -89,12 +109,22 @@ class ProjectConfiguration: ObservableObject {
         }
 
         UserDefaults.standard.set(availableLanguages, forKey: availableLanguagesKey)
+
+        UserDefaults.standard.set(availableStringsFiles, forKey: availableStringsFilesKey)
+
+        if let selectedFile = selectedStringsFile {
+            UserDefaults.standard.set(selectedFile, forKey: selectedStringsFileKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: selectedStringsFileKey)
+        }
     }
 
     func setLocalizationConfig(_ config: LocalizationConfig) {
         self.defaultLanguage = config.defaultLanguage
         self.localizationPath = config.localizationPath
         self.availableLanguages = config.availableLanguages
+        self.availableStringsFiles = config.availableStringsFiles
+        self.selectedStringsFile = config.selectedStringsFile
     }
 
     func clearConfiguration() {
@@ -102,6 +132,8 @@ class ProjectConfiguration: ObservableObject {
         defaultLanguage = nil
         localizationPath = nil
         availableLanguages = []
+        availableStringsFiles = []
+        selectedStringsFile = nil
     }
 
     func addRecentProject(projectPath: String, xcodeprojPath: String, config: LocalizationConfig) {

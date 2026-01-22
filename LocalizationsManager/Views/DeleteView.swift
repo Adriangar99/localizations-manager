@@ -12,6 +12,7 @@ struct DeleteView: View {
     let projectPath: String
     let localizationPath: String
     let defaultLanguage: String
+    let stringsFileName: String
     @State private var availableKeys: [LocalizationKey] = []
     @State private var selectedKeys: [LocalizationKey] = []
     @State private var searchText: String = ""
@@ -228,7 +229,7 @@ struct DeleteView: View {
         selectedAvailableKey = nil
         selectedDeleteKey = nil
 
-        let stringsFilePath = "\(localizationPath)/\(defaultLanguage).lproj/Localizable.strings"
+        let stringsFilePath = "\(localizationPath)/\(defaultLanguage).lproj/\(stringsFileName).strings"
 
         DispatchQueue.global(qos: .userInitiated).async {
             let keys = LocalizationParser.parseStringsFile(at: stringsFilePath)
@@ -241,7 +242,7 @@ struct DeleteView: View {
                     self.outputLog = "⚠️ No keys found in \(stringsFilePath)\n"
                     self.outputLog += "Make sure the file exists and contains valid localization entries.\n"
                 } else {
-                    self.outputLog = "✅ Loaded \(keys.count) keys from es.lproj\n"
+                    self.outputLog = "✅ Loaded \(keys.count) keys from \(self.defaultLanguage).lproj\n"
                 }
             }
         }
@@ -307,7 +308,8 @@ struct DeleteView: View {
             do {
                 try await deleter.deleteKeys(
                     keysToDelete,
-                    from: localizationPath
+                    from: localizationPath,
+                    stringsFileName: stringsFileName
                 )
 
                 self.selectedKeys.removeAll()
@@ -325,5 +327,5 @@ struct DeleteView: View {
 }
 
 #Preview {
-    DeleteView(projectPath: "/Users/example/Project", localizationPath: "/Users/example/Project", defaultLanguage: "es")
+    DeleteView(projectPath: "/Users/example/Project", localizationPath: "/Users/example/Project", defaultLanguage: "es", stringsFileName: "Localizable")
 }
