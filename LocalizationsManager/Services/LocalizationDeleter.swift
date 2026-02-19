@@ -74,25 +74,10 @@ final class LocalizationDeleter {
         await logger.log("   • Deleted: \(totalDeleted) key(s)")
     }
 
-    /// Finds all .lproj directories in the project path
+    /// Finds all .lproj directories in the project path (excluding third-party directories)
     private func findLprojDirectories(in path: String) throws -> [String] {
-        let fileManager = FileManager.default
-        var lprojDirs: [String] = []
-
-        if let enumerator = fileManager.enumerator(atPath: path) {
-            for case let item as String in enumerator {
-                let fullPath = (path as NSString).appendingPathComponent(item)
-                var isDirectory: ObjCBool = false
-
-                if fileManager.fileExists(atPath: fullPath, isDirectory: &isDirectory),
-                   isDirectory.boolValue,
-                   item.hasSuffix(".lproj") {
-                    lprojDirs.append(fullPath)
-                }
-            }
-        }
-
-        return lprojDirs.sorted()
+        // Delegate to the shared exclusion logic in LocalizationDetector
+        return LocalizationDetector.findLprojDirectories(in: path)
     }
 
     /// Cleans a .strings file by removing specified keys along with their comments

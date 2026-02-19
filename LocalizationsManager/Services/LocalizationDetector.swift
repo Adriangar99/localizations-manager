@@ -38,6 +38,66 @@ struct LocalizationConfig: Codable {
 
 class LocalizationDetector {
 
+    /// Directory names to exclude from .lproj scanning
+    private static let excludedDirectoryNames: Set<String> = [
+        // Dependency managers
+        "Pods", "Carthage", "node_modules", ".swiftpm", "spm_packages",
+        // Third-party code
+        "Libraries", "Vendor", "Vendors", "ThirdParty", "External", "Externals", "Submodules",
+        // Build artifacts
+        "DerivedData", "Build", "build", ".build"
+    ]
+
+    /// File extensions to exclude from .lproj scanning
+    private static let excludedExtensions: Set<String> = [
+        "framework", "bundle", "app", "xcarchive", "xcframework"
+    ]
+
+    /// Finds all .lproj directories in the project path, excluding third-party and build directories
+    /// - Parameter projectPath: The root directory to search
+    /// - Returns: Array of full paths to .lproj directories
+    static func findLprojDirectories(in projectPath: String) -> [String] {
+        let fileManager = FileManager.default
+        var lprojPaths: [String] = []
+
+        guard let projectURL = URL(string: "file://\(projectPath)") else {
+            return []
+        }
+
+        // Use URL-based enumerator to support skipDescendants()
+        guard let enumerator = fileManager.enumerator(
+            at: projectURL,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return []
+        }
+
+        for case let url as URL in enumerator {
+            let lastComponent = url.lastPathComponent
+
+            // Check if this directory should be excluded
+            if excludedDirectoryNames.contains(lastComponent) {
+                enumerator.skipDescendants()
+                continue
+            }
+
+            // Check if this directory has an excluded extension
+            let pathExtension = url.pathExtension
+            if !pathExtension.isEmpty && excludedExtensions.contains(pathExtension) {
+                enumerator.skipDescendants()
+                continue
+            }
+
+            // Collect .lproj directories
+            if lastComponent.hasSuffix(".lproj") {
+                lprojPaths.append(url.path)
+            }
+        }
+
+        return lprojPaths.sorted()
+    }
+
     /// Detects common .strings files across all .lproj directories
     /// - Returns: Array of .strings file names (without extension) that are present in most directories
     private static func detectCommonStringsFiles(in lprojPaths: [String]) -> [String] {
@@ -91,25 +151,19 @@ class LocalizationDetector {
     static func detectConfiguration(in projectPath: String) -> LocalizationConfig? {
         let fileManager = FileManager.default
 
-        // Find all .lproj directories recursively
-        var allLprojPaths: [(path: String, language: String)] = []
+        // Find all .lproj directories recursively (excluding third-party directories)
+        let lprojDirectories = findLprojDirectories(in: projectPath)
 
-        if let enumerator = fileManager.enumerator(atPath: projectPath) {
-            for case let file as String in enumerator {
-                if file.hasSuffix(".lproj") {
-                    let fullPath = (projectPath as NSString).appendingPathComponent(file)
-
-                    // Extract language code from directory name (e.g., "es.lproj" -> "es")
-                    let dirName = (file as NSString).lastPathComponent
-                    let language = dirName.replacingOccurrences(of: ".lproj", with: "")
-
-                    allLprojPaths.append((path: fullPath, language: language))
-                }
-            }
+        guard !lprojDirectories.isEmpty else {
+            return nil
         }
 
-        guard !allLprojPaths.isEmpty else {
-            return nil
+        // Extract language codes from directory names
+        var allLprojPaths: [(path: String, language: String)] = []
+        for fullPath in lprojDirectories {
+            let dirName = (fullPath as NSString).lastPathComponent
+            let language = dirName.replacingOccurrences(of: ".lproj", with: "")
+            allLprojPaths.append((path: fullPath, language: language))
         }
 
         // Detect common .strings files

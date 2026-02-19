@@ -133,4 +133,60 @@ struct LocalizationDetectorTests {
         let stringsPath = LocalizationDetector.stringsFilePath(for: "es", in: config!)
         #expect(stringsPath.hasSuffix("es.lproj/Localizable.strings"))
     }
+
+    @Test func testExcludesThirdPartyDirectories() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+        let projectDir = tempDir.appendingPathComponent("TestProjectExclusion_\(UUID().uuidString)")
+
+        try FileManager.default.createDirectory(at: projectDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: projectDir) }
+
+        // Create valid project .lproj folders
+        let validLanguages = ["es", "en"]
+        for lang in validLanguages {
+            let lprojDir = projectDir.appendingPathComponent("\(lang).lproj")
+            try FileManager.default.createDirectory(at: lprojDir, withIntermediateDirectories: true)
+
+            let stringsFile = lprojDir.appendingPathComponent("Localizable.strings")
+            try "\"test\" = \"test\";".write(to: stringsFile, atomically: true, encoding: .utf8)
+        }
+
+        // Create .lproj folders in excluded directories that should be ignored
+        let excludedPaths = [
+            "Libraries/QYChatSDK/Resources/QYLanguage.bundle/fr.lproj",
+            "Pods/SomePod/de.lproj",
+            "Carthage/Build/SomeFramework.framework/it.lproj",
+            "node_modules/some-module/pt.lproj",
+            "Vendor/ThirdPartyLib/ja.lproj",
+            "DerivedData/SomeApp/zh.lproj",
+            "Build/Products/ar.lproj",
+            ".build/artifacts/ru.lproj"
+        ]
+
+        for excludedPath in excludedPaths {
+            let lprojDir = projectDir.appendingPathComponent(excludedPath)
+            try FileManager.default.createDirectory(at: lprojDir, withIntermediateDirectories: true)
+
+            let stringsFile = lprojDir.appendingPathComponent("Localizable.strings")
+            try "\"excluded\" = \"excluded\";".write(to: stringsFile, atomically: true, encoding: .utf8)
+        }
+
+        let config = LocalizationDetector.detectConfiguration(in: projectDir.path)
+
+        // Should detect only the valid project languages, not the excluded ones
+        #expect(config != nil)
+        #expect(config?.availableLanguages.count == 2)
+        #expect(config?.availableLanguages.contains("es") == true)
+        #expect(config?.availableLanguages.contains("en") == true)
+
+        // Should NOT contain any languages from excluded directories
+        #expect(config?.availableLanguages.contains("fr") == false)
+        #expect(config?.availableLanguages.contains("de") == false)
+        #expect(config?.availableLanguages.contains("it") == false)
+        #expect(config?.availableLanguages.contains("pt") == false)
+        #expect(config?.availableLanguages.contains("ja") == false)
+        #expect(config?.availableLanguages.contains("zh") == false)
+        #expect(config?.availableLanguages.contains("ar") == false)
+        #expect(config?.availableLanguages.contains("ru") == false)
+    }
 }
