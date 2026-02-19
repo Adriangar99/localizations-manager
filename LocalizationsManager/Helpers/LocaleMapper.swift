@@ -34,6 +34,7 @@ struct LocaleMapper {
         "he_IL": "he.lproj",
         "hr_HR": "hr.lproj",
         "hu_HU": "hu.lproj",
+        "hy_AM": "hy-AM.lproj",
         "id_ID": "id.lproj",
         "it_IT": "it.lproj",
         "ja_JP": "ja.lproj",
