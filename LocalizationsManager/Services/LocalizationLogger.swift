@@ -12,23 +12,30 @@ protocol LocalizationLogger: Actor {
     func log(_ message: String) async
 }
 
+struct LogEvent: Identifiable, Equatable {
+    let id = UUID()
+    let message: String
+}
+
 /// Actor that broadcasts log messages to subscribers using AsyncStream
 actor BroadcastLogger: LocalizationLogger {
-    private var continuations: [UUID: AsyncStream<String>.Continuation] = [:]
+    private var continuations: [UUID: AsyncStream<LogEvent>.Continuation] = [:]
 
     func log(_ message: String) async {
+        let event = LogEvent(message: message)
+
         // Broadcast to all subscribers directly
         for continuation in continuations.values {
-            continuation.yield(message)
+            continuation.yield(event)
         }
     }
 
     /// Subscribe to log messages
     /// - Returns: A tuple with the subscription ID and an AsyncStream of log messages
-    func subscribe() -> (id: UUID, stream: AsyncStream<String>) {
+    func subscribe() -> (id: UUID, stream: AsyncStream<LogEvent>) {
         let id = UUID()
 
-        let stream = AsyncStream<String>(bufferingPolicy: .bufferingNewest(100)) { continuation in
+        let stream = AsyncStream<LogEvent>(bufferingPolicy: .bufferingNewest(100)) { continuation in
             Task { @MainActor in
                 await self.addContinuation(id: id, continuation: continuation)
             }
@@ -45,7 +52,7 @@ actor BroadcastLogger: LocalizationLogger {
         }
     }
 
-    private func addContinuation(id: UUID, continuation: AsyncStream<String>.Continuation) {
+    private func addContinuation(id: UUID, continuation: AsyncStream<LogEvent>.Continuation) {
         continuations[id] = continuation
 
         continuation.onTermination = { @Sendable [weak self] _ in

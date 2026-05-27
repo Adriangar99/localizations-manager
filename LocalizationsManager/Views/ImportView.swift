@@ -16,7 +16,7 @@ struct ImportView: View {
     let stringsFileName: String
     @State private var excelFilePath: String? = nil
     @State private var isProcessing: Bool = false
-    @State private var outputLog: String = ""
+    @State private var logEvents: [LogEvent] = []
     @State private var isDragOver: Bool = false
 
     var body: some View {
@@ -97,7 +97,7 @@ struct ImportView: View {
             .padding(.vertical)
 
             // Right Column - Output Log
-            OutputLogView(outputLog: outputLog, onCopy: copyToClipboard)
+            OutputLogView(events: logEvents, onCopy: copyToClipboard)
         }
     }
 
@@ -109,6 +109,18 @@ struct ImportView: View {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(outputLog, forType: .string)
+    }
+
+    private var outputLog: String {
+        logEvents.map(\.message).joined(separator: "\n")
+    }
+
+    private func replaceLog(with message: String) {
+        logEvents = [LogEvent(message: message)]
+    }
+
+    private func appendLog(_ message: String) {
+        logEvents.append(LogEvent(message: message))
     }
 
     private func selectExcelFile() {
@@ -125,7 +137,7 @@ struct ImportView: View {
         if panel.runModal() == .OK {
             if let url = panel.url {
                 excelFilePath = url.path
-                outputLog = "✅ File loaded: \(url.lastPathComponent)"
+                replaceLog(with: "✅ File loaded: \(url.lastPathComponent)")
             }
         }
     }
@@ -143,11 +155,11 @@ struct ImportView: View {
             if fileExtension == "xlsx" || fileExtension == "xls" {
                 DispatchQueue.main.async {
                     self.excelFilePath = url.path
-                    self.outputLog = "✅ File loaded: \(url.lastPathComponent)"
+                    self.replaceLog(with: "✅ File loaded: \(url.lastPathComponent)")
                 }
             } else {
                 DispatchQueue.main.async {
-                    self.outputLog = "❌ Invalid file type. Please drop an Excel file (.xlsx or .xls)"
+                    self.replaceLog(with: "❌ Invalid file type. Please drop an Excel file (.xlsx or .xls)")
                 }
             }
         }
@@ -159,7 +171,7 @@ struct ImportView: View {
         guard let excelPath = excelFilePath else { return }
 
         isProcessing = true
-        outputLog = ""
+        logEvents.removeAll()
 
         Task { @MainActor in
             let logger = BroadcastLogger()
@@ -167,8 +179,8 @@ struct ImportView: View {
 
             // Start listening to log messages
             let logTask = Task { @MainActor in
-                for await message in logStream {
-                    self.outputLog += message + "\n"
+                for await event in logStream {
+                    self.logEvents.append(event)
                 }
             }
 
@@ -183,7 +195,7 @@ struct ImportView: View {
 
                 self.isProcessing = false
             } catch {
-                self.outputLog += "❌ Error: \(error.localizedDescription)\n"
+                self.appendLog("❌ Error: \(error.localizedDescription)")
                 self.isProcessing = false
             }
 

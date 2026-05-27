@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OutputLogView: View {
-    let outputLog: String
+    let events: [LogEvent]
     let onCopy: () -> Void
 
     var body: some View {
@@ -23,29 +23,34 @@ struct OutputLogView: View {
                     color: .blue,
                     action: onCopy
                 )
-                .disabled(outputLog.isEmpty)
-                .opacity(outputLog.isEmpty ? 0.5 : 1.0)
+                .disabled(events.isEmpty)
+                .opacity(events.isEmpty ? 0.5 : 1.0)
             }
             .padding([.horizontal, .top])
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack {
-                        Text(outputLog.isEmpty ? "No output yet..." : outputLog)
-                            .font(.system(.body, design: .monospaced))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .textSelection(.enabled)
-
-                        Color.clear
-                            .frame(height: 1)
-                            .id("bottom")
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        if events.isEmpty {
+                            Text("No output yet...")
+                                .font(.system(.body, design: .monospaced))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .textSelection(.enabled)
+                        } else {
+                            ForEach(events) { event in
+                                Text(event.message.isEmpty ? " " : event.message)
+                                    .font(.system(.body, design: .monospaced))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .textSelection(.enabled)
+                                    .id(event.id)
+                            }
+                        }
                     }
                     .padding(12)
                 }
-                .onChange(of: outputLog) {
-                    withAnimation {
-                        proxy.scrollTo("bottom", anchor: .bottom)
-                    }
+                .task(id: events.last?.id) {
+                    guard let lastEvent = events.last else { return }
+                    proxy.scrollTo(lastEvent.id, anchor: .bottom)
                 }
             }
             .background(

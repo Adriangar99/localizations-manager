@@ -35,14 +35,15 @@ def parse_excel(file_path):
         wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
         ws = wb.active
 
-        # Get all rows as list
-        rows = list(ws.iter_rows(values_only=True))
+        # Stream rows instead of loading the whole worksheet into memory.
+        rows = ws.iter_rows(values_only=True)
+        header_row = next(rows, None)
 
-        if not rows:
+        if not header_row:
             return {"error": "Empty worksheet"}
 
         # First row is headers
-        headers = [str(h).strip() if h else "" for h in rows[0]]
+        headers = [str(h).strip() if h else "" for h in header_row]
 
         # Find required columns
         try:
@@ -63,7 +64,7 @@ def parse_excel(file_path):
 
         # Parse data rows
         entries = []
-        for row in rows[1:]:
+        for row in rows:
             if not row or len(row) <= max(bundle_col, locale_col, key_col, value_col):
                 continue
 
@@ -106,4 +107,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     result = parse_excel(sys.argv[1])
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))

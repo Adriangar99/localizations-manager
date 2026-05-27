@@ -45,8 +45,10 @@ final class LocalizationImporter {
 
         // Parse Excel file using Python + openpyxl - this is done ONCE
         await logger.log("📖 Parsing Excel file...")
+        let parseStart = Date()
         var localizations = try parseExcelFile(at: excelPath)
-        await logger.log("   ✓ Parsed \(localizations.count) localization entries")
+        let parseDuration = Date().timeIntervalSince(parseStart)
+        await logger.log("   ✓ Parsed \(localizations.count) localization entries in \(String(format: "%.1f", parseDuration))s")
         await logger.log("")
 
         // Ensure all keys have a value in the default language
@@ -167,6 +169,8 @@ final class LocalizationImporter {
 
     /// Parses an Excel file using Python + openpyxl
     private func parseExcelFile(at path: String) throws -> [LocalizationEntry] {
+        let timeoutSeconds: TimeInterval = 120
+
         // Get path to Python script
 
         guard let finalPath = Bundle.main.path(forResource: "parse_excel", ofType: "py") else {
@@ -178,18 +182,54 @@ final class LocalizationImporter {
         process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
         process.arguments = [finalPath, path]
 
-        let outputPipe = Pipe()
-        let errorPipe = Pipe()
-        process.standardOutput = outputPipe
-        process.standardError = errorPipe
+        let temporaryDirectory = FileManager.default.temporaryDirectory
+        let outputURL = temporaryDirectory.appendingPathComponent("parse_excel_\(UUID().uuidString)_stdout.json")
+        let errorURL = temporaryDirectory.appendingPathComponent("parse_excel_\(UUID().uuidString)_stderr.log")
+        defer {
+            try? FileManager.default.removeItem(at: outputURL)
+            try? FileManager.default.removeItem(at: errorURL)
+        }
+
+        FileManager.default.createFile(atPath: outputURL.path, contents: nil)
+        FileManager.default.createFile(atPath: errorURL.path, contents: nil)
+
+        let outputHandle = try FileHandle(forWritingTo: outputURL)
+        let errorHandle = try FileHandle(forWritingTo: errorURL)
+        var didCloseHandles = false
+
+        func closeHandles() {
+            guard !didCloseHandles else { return }
+            outputHandle.closeFile()
+            errorHandle.closeFile()
+            didCloseHandles = true
+        }
+
+        defer {
+            closeHandles()
+        }
+
+        process.standardOutput = outputHandle
+        process.standardError = errorHandle
 
         do {
             try process.run()
-            process.waitUntilExit()
+
+            let deadline = Date().addingTimeInterval(timeoutSeconds)
+            while process.isRunning && Date() < deadline {
+                Thread.sleep(forTimeInterval: 0.1)
+            }
+
+            if process.isRunning {
+                process.terminate()
+                Thread.sleep(forTimeInterval: 0.2)
+                throw LocalizationError.invalidExcelFile("Python script timed out after \(Int(timeoutSeconds)) seconds")
+            }
+
+            closeHandles()
 
             // Read output
-            let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            let outputData = try Data(contentsOf: outputURL)
+            let errorData = try Data(contentsOf: errorURL)
 
             guard process.terminationStatus == 0 else {
                 let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
@@ -233,6 +273,8 @@ final class LocalizationImporter {
 
             return entries
 
+        } catch let error as LocalizationError {
+            throw error
         } catch {
             throw LocalizationError.invalidExcelFile("Failed to execute Python script: \(error.localizedDescription)")
         }

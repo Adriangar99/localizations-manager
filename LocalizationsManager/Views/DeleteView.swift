@@ -17,7 +17,7 @@ struct DeleteView: View {
     @State private var selectedKeys: [LocalizationKey] = []
     @State private var searchText: String = ""
     @State private var isProcessing: Bool = false
-    @State private var outputLog: String = ""
+    @State private var logEvents: [LogEvent] = []
     @State private var isLoading: Bool = false
     @State private var selectedAvailableKey: LocalizationKey? = nil
     @State private var selectedDeleteKey: LocalizationKey? = nil
@@ -213,7 +213,7 @@ struct DeleteView: View {
             }
 
             // Right Column - Output Log
-            OutputLogView(outputLog: outputLog, onCopy: copyToClipboard)
+            OutputLogView(events: logEvents, onCopy: copyToClipboard)
         }
     }
 
@@ -239,10 +239,12 @@ struct DeleteView: View {
                 self.isLoading = false
 
                 if keys.isEmpty {
-                    self.outputLog = "⚠️ No keys found in \(stringsFilePath)\n"
-                    self.outputLog += "Make sure the file exists and contains valid localization entries.\n"
+                    self.logEvents = [
+                        LogEvent(message: "⚠️ No keys found in \(stringsFilePath)"),
+                        LogEvent(message: "Make sure the file exists and contains valid localization entries.")
+                    ]
                 } else {
-                    self.outputLog = "✅ Loaded \(keys.count) keys from \(self.defaultLanguage).lproj\n"
+                    self.replaceLog(with: "✅ Loaded \(keys.count) keys from \(self.defaultLanguage).lproj")
                 }
             }
         }
@@ -284,11 +286,23 @@ struct DeleteView: View {
         pasteboard.setString(outputLog, forType: .string)
     }
 
+    private var outputLog: String {
+        logEvents.map(\.message).joined(separator: "\n")
+    }
+
+    private func replaceLog(with message: String) {
+        logEvents = [LogEvent(message: message)]
+    }
+
+    private func appendLog(_ message: String) {
+        logEvents.append(LogEvent(message: message))
+    }
+
     private func executeScript() {
         guard !selectedKeys.isEmpty else { return }
 
         isProcessing = true
-        outputLog = ""
+        logEvents.removeAll()
 
         let keysToDelete = selectedKeys.map { $0.key }
 
@@ -298,8 +312,8 @@ struct DeleteView: View {
 
             // Start listening to log messages
             let logTask = Task { @MainActor in
-                for await message in logStream {
-                    self.outputLog += message + "\n"
+                for await event in logStream {
+                    self.logEvents.append(event)
                 }
             }
 
@@ -315,7 +329,7 @@ struct DeleteView: View {
                 self.selectedKeys.removeAll()
                 self.isProcessing = false
             } catch {
-                self.outputLog += "❌ Error: \(error.localizedDescription)\n"
+                self.appendLog("❌ Error: \(error.localizedDescription)")
                 self.isProcessing = false
             }
 
