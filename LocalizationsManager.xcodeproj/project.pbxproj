@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 110;
 	objects = {
 
 /* Begin PBXContainerItemProxy section */
@@ -37,17 +37,13 @@
 /* Begin PBXFrameworksBuildPhase section */
 		AAFF72AC2F1E335C003491ED /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AAFF72B92F1E335D003491ED /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -83,14 +79,10 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			fileSystemSynchronizedGroups = (
 				AAFF72B12F1E335C003491ED /* LocalizationsManager */,
 			);
 			name = LocalizationsManager;
-			packageProductDependencies = (
-			);
 			productName = LocalizationsManager;
 			productReference = AAFF72AF2F1E335C003491ED /* LocalizationsManager.app */;
 			productType = "com.apple.product-type.application";
@@ -112,8 +104,6 @@
 				AAFF72BF2F1E335D003491ED /* LocalizationsManagerTests */,
 			);
 			name = LocalizationsManagerTests;
-			packageProductDependencies = (
-			);
 			productName = LocalizationsManagerTests;
 			productReference = AAFF72BC2F1E335D003491ED /* LocalizationsManagerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -126,7 +116,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					AAFF72AE2F1E335C003491ED = {
 						CreatedOnToolsVersion = 26.2;
@@ -148,7 +138,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 			);
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 110;
 			productRefGroup = AAFF72B02F1E335C003491ED /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -162,34 +152,26 @@
 /* Begin PBXResourcesBuildPhase section */
 		AAFF72AD2F1E335C003491ED /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AAFF72BA2F1E335D003491ED /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		AAFF72AB2F1E335C003491ED /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AAFF72B82F1E335D003491ED /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -202,7 +184,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		AAFF72CE2F1E335D003491ED /* Debug */ = {
+		AAFF72CE2F1E335D003491ED /* Debug configuration for PBXProject "LocalizationsManager" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -236,6 +218,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -260,12 +243,13 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
-		AAFF72CF2F1E335D003491ED /* Release */ = {
+		AAFF72CF2F1E335D003491ED /* Release configuration for PBXProject "LocalizationsManager" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -299,6 +283,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -316,11 +301,12 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
 		};
-		AAFF72D12F1E335D003491ED /* Debug */ = {
+		AAFF72D12F1E335D003491ED /* Debug configuration for PBXNativeTarget "LocalizationsManager" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -329,6 +315,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 4;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -353,7 +340,7 @@
 			};
 			name = Debug;
 		};
-		AAFF72D22F1E335D003491ED /* Release */ = {
+		AAFF72D22F1E335D003491ED /* Release configuration for PBXNativeTarget "LocalizationsManager" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -362,6 +349,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 4;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -386,12 +374,13 @@
 			};
 			name = Release;
 		};
-		AAFF72D42F1E335D003491ED /* Debug */ = {
+		AAFF72D42F1E335D003491ED /* Debug configuration for PBXNativeTarget "LocalizationsManagerTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
@@ -406,12 +395,13 @@
 			};
 			name = Debug;
 		};
-		AAFF72D52F1E335D003491ED /* Release */ = {
+		AAFF72D52F1E335D003491ED /* Release configuration for PBXNativeTarget "LocalizationsManagerTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
@@ -432,28 +422,25 @@
 		AAFF72AA2F1E335C003491ED /* Build configuration list for PBXProject "LocalizationsManager" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				AAFF72CE2F1E335D003491ED /* Debug */,
-				AAFF72CF2F1E335D003491ED /* Release */,
+				AAFF72CE2F1E335D003491ED /* Debug configuration for PBXProject "LocalizationsManager" */,
+				AAFF72CF2F1E335D003491ED /* Release configuration for PBXProject "LocalizationsManager" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		AAFF72D02F1E335D003491ED /* Build configuration list for PBXNativeTarget "LocalizationsManager" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				AAFF72D12F1E335D003491ED /* Debug */,
-				AAFF72D22F1E335D003491ED /* Release */,
+				AAFF72D12F1E335D003491ED /* Debug configuration for PBXNativeTarget "LocalizationsManager" */,
+				AAFF72D22F1E335D003491ED /* Release configuration for PBXNativeTarget "LocalizationsManager" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		AAFF72D32F1E335D003491ED /* Build configuration list for PBXNativeTarget "LocalizationsManagerTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				AAFF72D42F1E335D003491ED /* Debug */,
-				AAFF72D52F1E335D003491ED /* Release */,
+				AAFF72D42F1E335D003491ED /* Debug configuration for PBXNativeTarget "LocalizationsManagerTests" */,
+				AAFF72D52F1E335D003491ED /* Release configuration for PBXNativeTarget "LocalizationsManagerTests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
